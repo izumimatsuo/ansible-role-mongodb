@@ -1,0 +1,48 @@
+---
+- name: copy mongodb repo
+  template:
+    src: mongodb-org.repo.j2
+    dest: "/etc/yum.repos.d/mongodb-org-{{ MONGODB_VERSION }}.repo"
+    mode: 0644
+  tags: mongodb
+
+- name: install mongodb package
+  yum:
+    name: mongodb-org
+  tags: mongodb
+
+- name: start mongod service
+  service:
+    name: mongod
+    state: started
+    enabled: yes
+  tags: mongodb
+
+- name: create conf directory
+  file:
+    path: /usr/local/mongodb/conf
+    state: directory
+  tags: mongodb
+
+- name: create keyfile
+  shell: openssl rand -base64 741 > /usr/local/mongodb/conf/mongodb-keyfile
+  args:
+    creates: /usr/local/mongodb/conf/mongodb-keyfile
+  check_mode: no
+  tags: mongodb
+
+- name: permit keyfile
+  file:
+    path: /usr/local/mongodb/conf/mongodb-keyfile
+    mode: 0600
+    owner: mongod
+    group: mongod
+  tags: mongodb
+
+- name: copy mongod conf
+  template:
+    src: mongod.conf.j2
+    dest: /etc/mongod.conf
+    mode: 0644
+  notify: restart mongod service
+  tags: mongodb

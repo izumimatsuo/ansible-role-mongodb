@@ -1,0 +1,3 @@
+---
+mongod_listen_port: 27017
+mongod_bind_ip: '127.0.0.1'
