@@ -2,7 +2,7 @@
 - name: copy mongodb repo
   template:
     src: mongodb-org.repo.j2
-    dest: "/etc/yum.repos.d/mongodb-org-{{ MONGODB_VERSION }}.repo"
+    dest: "/etc/yum.repos.d/mongodb-org.repo"
     mode: 0644
   tags: mongodb
 
