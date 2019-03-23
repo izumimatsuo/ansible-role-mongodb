@@ -1,5 +1,5 @@
 ---
-- name: copy mongodb repo
+- name: install mongodb repository
   template:
     src: mongodb-org.repo.j2
     dest: "/etc/yum.repos.d/mongodb-org.repo"
@@ -9,6 +9,25 @@
 - name: install mongodb package
   yum:
     name: mongodb-org
+  tags: mongodb
+
+- name: install epel repository
+  yum:
+    name: epel-release
+  tags: mongodb
+
+- name: install pip & pymongo package
+  yum:
+    name:
+      - python-pymongo
+      - python-devel
+      - python-pip
+  tags: mongodb
+
+- name: install pymongo at pip
+  pip:
+    name: pymongo
+    version: "{{ MONGODB_VERSION }}"
   tags: mongodb
 
 - name: start mongod service
@@ -45,4 +64,26 @@
     dest: /etc/mongod.conf
     mode: 0644
   notify: restart mongod service
+  tags: mongodb
+
+- name: check admin user already exists
+  command: >
+    mongo --quiet -u {{ mongodb_user_admin_name }} \
+          -p {{ mongodb_user_admin_password }} \
+          --port {{ mongod_listen_port }} --eval 'db.version()' admin
+  register: mongodb_user_admin_status
+  failed_when: no
+  check_mode: no
+  changed_when: mongodb_user_admin_status.rc != 0
+  tags: mongodb
+
+- name: create admin user
+  mongodb_user:
+    database: admin
+    name: "{{ mongodb_user_admin_name }}"
+    password: "{{ mongodb_user_admin_password }}"
+    roles: userAdminAnyDatabase
+    login_port: "{{ mongod_listen_port }}"
+    update_password: on_create
+  when: mongodb_user_admin_status is changed
   tags: mongodb

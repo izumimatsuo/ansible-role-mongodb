@@ -1,3 +1,8 @@
 ---
 mongod_listen_port: 27017
 mongod_bind_ip: '127.0.0.1'
+
+mongodb_user_admin_name: 'admin'
+mongodb_user_admin_password:
+
+mongodb_replication: no
